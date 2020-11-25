@@ -1,0 +1,61 @@
+# @package _group_
+_target_: tt.Compose
+transforms:
+- _target_: tt.LoadPLYd
+  keys: ['mesh']
+
+- _target_: tt.LoadPNGandJSONd
+  keys: 'image2d'
+  overwriting: True
+
+- _target_: tt.Transposed   # TODO: create issue for monai LoadPNG: load png with shape (ch, w, h)
+  keys: 'image2d'
+  indices: [2, 0, 1]
+
+- _target_: tt.DebugDict
+  keys: ['mesh', 'image2d']
+
+- _target_: tt.ScaleIntensityDict
+  keys: 'image2d'
+  minv: null
+  maxv: null
+  factor: -0.996078431372549  # - 254 / 255, 
+
+- _target_: tt.RandFlipX
+  keys: ['mesh', 'image2d']
+  prob: 0.99
+  image_spatial_axis: 1
+   # for 2D images axis starts without channel (ch, 0-h, 1-w), e.g. 1 - width
+   # https://github.com/Project-MONAI/MONAI/blob/master/monai/transforms/spatial/array.py#L262 
+
+- _target_: tt.ToPointCloud
+  keys: ['mesh']
+  new_keys: ['pc']
+  method: centers
+  features_from_vertices: ['red', 'green', 'blue']
+  normals: True
+  labels_from_faces: ['shape_id']
+
+- _target_: tt.SamplePoints
+  keys: 'pc'
+  num_points: 10000
+
+- _target_: tt.CropRect
+  keys: 'pc'
+  sizes: [-0.03,  0.0, -0.01, 0.03, 0.05, 0.01]
+
+- _target_: tt.DebugDict
+  keys: ['pc', 'image2d']
+
+- _target_: tt.ToSparseVoxels
+  keys: ['pc']
+  new_keys_prefixes: ['sp']
+  coords_range: [-0.03,  0.0, -0.01, 0.03, 0.05, 0.01]
+  voxel_size: [0.0004, 0.0004, 0.0004]
+  add_local_pos: True
+
+- _target_: tt.ToTensorD
+  keys: ['sp_coords', 'sp_features', 'sp_shape_id']
+
+- _target_: tt.DebugDict
+  keys: null

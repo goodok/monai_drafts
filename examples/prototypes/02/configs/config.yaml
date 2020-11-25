@@ -1,0 +1,8 @@
+defaults:
+- transforms: transforms
+
+paths:
+  data: "/media/Linux_4Tb/synth3D/tablets_30"
+
+debug:
+  transforms: False
