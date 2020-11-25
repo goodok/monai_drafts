@@ -29,6 +29,7 @@ class ToSparseVoxels(MapTransform):
         coords_range,
         new_keys_prefixes: KeysCollection = None,
         add_local_pos=False,
+        labels_int_to_int64=True,
 
     ) -> None:
         """
@@ -44,6 +45,8 @@ class ToSparseVoxels(MapTransform):
                 range. format: xyzxyz, minmax
             add_local_pos: bool
                 add local position in voxels to featues
+            labels_to_int64: bool
+                convert integer labels to int64 (e.g. from int8)
         """
         super().__init__(keys)
 
@@ -55,12 +58,15 @@ class ToSparseVoxels(MapTransform):
         self.voxel_size = voxel_size
         self.coords_range = coords_range
         self.add_local_pos = add_local_pos
+        self.labels_int_to_int64 = True
 
     def __call__(self, d):
 
-        for key, prefix in zip(self.keys, self.new_keys_prefixes):
-            if prefix:
-                prefix = prefix + "_"
+        for key, prefix in zip(self.keys, self.new_keys_prefixes):            
+            prefix = '' if prefix is None else prefix
+            prefix = prefix.strip()
+            if prefix != '':    
+                prefix += '_'               
 
             item = d[key]
             data = item.data
@@ -82,7 +88,10 @@ class ToSparseVoxels(MapTransform):
             d[prefix + 'features'] = features
 
             for label_key in data['labels_keys']:
-                d[prefix + label_key] = data[label_key]
+                x = data[label_key]
+                if self.labels_int_to_int64 and x.dtype.kind in np.typecodes["AllInteger"] and x.dtype != 'int64':
+                    x = np.int64(x)
+                d[prefix + label_key] = x
 
             d[prefix + 'features_original_keys'] = data['features_original_keys']
             d[prefix + 'labels_keys']= data['labels_keys']

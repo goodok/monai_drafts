@@ -49,11 +49,11 @@ def log(text, array=None, indent=''):
     prints iterators's shape, min, and max values.
     """
     if isinstance(text, dict) or isinstance(array, dict):
-        log_dict(text, array)
+        log_dict(text, array, indent)
         return
     if isinstance(array, list):
         d = dict([(str(i), v) for i, v in enumerate(array)])
-        log_dict(text, d)
+        log_dict(text, d, indent)
         return
     if array is not None:
         text = indent + text.ljust(log_options['max_name_length'])
@@ -111,12 +111,12 @@ def log_as_dict(text, array=None, indent=''):
     return r
 
 
-def log_dict(text, d=None):
+def log_dict(text, d=None, ident=''):
     if d is None:
         d = text
     else:
-        print(f'{text}:')
-    indent = ' ' * 3
+        print(f'{ident}{text}:')
+    indent = ' ' * 3 + ident
     for key in d:
         try:
             value = d[key]

@@ -11,7 +11,7 @@ def my_app(cfg=None):
 
     ds = get_dataset(cfg.paths.data)
 
-    print("ds[0]:")     
+    print("ds[0]:")
     print(ds[0])
     print()
 
